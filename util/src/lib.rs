@@ -1,5 +1,16 @@
 use std::{fs::File, io::Read};
 
+pub fn get_data_chars(path: &str) -> Vec<Vec<char>> {
+    let data = get_data(path);
+
+    let mut data_chars: Vec<Vec<char>> = Vec::new();
+    for line in data {
+        data_chars.push(line.chars().collect());
+    }
+
+    return data_chars;
+}
+
 pub fn get_data(path: &str) -> Vec<String> {
     let mut data = match File::open(path) {
         Ok(file) => file,
