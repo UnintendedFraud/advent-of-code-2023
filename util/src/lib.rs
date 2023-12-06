@@ -5,7 +5,9 @@ pub fn get_data_chars(path: &str) -> Vec<Vec<char>> {
 
     let mut data_chars: Vec<Vec<char>> = Vec::new();
     for line in data {
-        data_chars.push(line.chars().collect());
+        if !line.is_empty() {
+            data_chars.push(line.chars().collect());
+        }
     }
 
     return data_chars;
@@ -22,7 +24,11 @@ pub fn get_data(path: &str) -> Vec<String> {
         .ok()
         .expect("failed to parse file");
 
-    let lines: Vec<String> = content.split("\n").map(|l| l.to_string()).collect();
+    let lines: Vec<String> = content
+        .split("\n")
+        .map(|l| l.to_string())
+        .filter(|l| !l.is_empty())
+        .collect();
 
     return lines;
 }
