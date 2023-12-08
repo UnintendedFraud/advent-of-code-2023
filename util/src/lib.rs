@@ -32,3 +32,11 @@ pub fn get_data(path: &str) -> Vec<String> {
 
     return lines;
 }
+
+pub fn get_numbers_from_str(s: &str, delimiter: &str) -> Vec<usize> {
+    return s
+        .split(delimiter)
+        .filter(|x| !x.is_empty())
+        .map(|x| x.trim().parse().expect("failed to parse string"))
+        .collect();
+}
