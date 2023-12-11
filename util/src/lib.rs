@@ -33,7 +33,7 @@ pub fn get_data(path: &str) -> Vec<String> {
     return lines;
 }
 
-pub fn get_numbers_from_str(s: &str, delimiter: &str) -> Vec<usize> {
+pub fn get_numbers_from_str<I32>(s: &str, delimiter: &str) -> Vec<i32> {
     return s
         .split(delimiter)
         .filter(|x| !x.is_empty())
