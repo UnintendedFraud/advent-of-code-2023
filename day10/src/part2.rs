@@ -1,19 +1,33 @@
-mod part2;
+pub fn get_insides(d: &Vec<Vec<char>>, start: &(i32, i32), direction: &(i32, i32)) -> i32 {
+    let path = get_path(d, start, direction);
 
-fn main() {
-    let data = util::get_data_chars("data.txt");
+    // the other sign combined with those counts as 1
+    let turns_chars = Vec::from(['J', 'L', '|']);
 
-    let (start, starting_direction) = find_starting_directions(&data);
+    let mut count = 0;
 
-    let max = get_max_result(&data, start, &starting_direction);
-    let inside_count = part2::get_insides(&data, &start, &starting_direction);
+    for i in 0..d.len() {
+        let row = &d[i];
 
-    println!("## part 1 max: {}", max);
-    println!("## part 2 insides: {}", inside_count);
+        let mut pipes_count = 0;
+
+        for j in 0..row.len() {
+            let c = if row[j] == 'S' { 'J' } else { row[j] };
+
+            let is_char_path = is_path((i, j), &path);
+
+            if is_char_path && turns_chars.contains(&c) {
+                pipes_count += 1;
+            } else if !is_char_path && pipes_count % 2 != 0 {
+                count += 1;
+            }
+        }
+    }
+
+    return count;
 }
 
-fn get_max_result(d: &Vec<Vec<char>>, start: (i32, i32), direction: &(i32, i32)) -> i32 {
-    let mut count = 1;
+fn get_path(d: &Vec<Vec<char>>, start: &(i32, i32), direction: &(i32, i32)) -> Vec<(usize, usize)> {
     let mut finished = false;
 
     let mut row = direction.0 as usize;
@@ -22,8 +36,12 @@ fn get_max_result(d: &Vec<Vec<char>>, start: (i32, i32), direction: &(i32, i32))
     let mut prev_row = start.0 as usize;
     let mut prev_col = start.1 as usize;
 
+    let mut path = Vec::from([(prev_row, prev_col)]);
+
     while !finished {
         let next_char = &d[row][col];
+
+        path.push((row, col));
 
         if *next_char == 'S' {
             finished = true;
@@ -33,8 +51,6 @@ fn get_max_result(d: &Vec<Vec<char>>, start: (i32, i32), direction: &(i32, i32))
 
             match *next_char {
                 '|' => {
-                    count += 1;
-
                     if prev_row > row {
                         row -= 1;
                     } else {
@@ -42,7 +58,6 @@ fn get_max_result(d: &Vec<Vec<char>>, start: (i32, i32), direction: &(i32, i32))
                     }
                 }
                 '-' => {
-                    count += 1;
                     if prev_col > col {
                         col -= 1;
                     } else {
@@ -50,8 +65,6 @@ fn get_max_result(d: &Vec<Vec<char>>, start: (i32, i32), direction: &(i32, i32))
                     }
                 }
                 'L' => {
-                    count += 1;
-
                     if prev_col > col {
                         row -= 1;
                     } else {
@@ -59,8 +72,6 @@ fn get_max_result(d: &Vec<Vec<char>>, start: (i32, i32), direction: &(i32, i32))
                     }
                 }
                 'J' => {
-                    count += 1;
-
                     if prev_col < col {
                         row -= 1;
                     } else {
@@ -68,8 +79,6 @@ fn get_max_result(d: &Vec<Vec<char>>, start: (i32, i32), direction: &(i32, i32))
                     }
                 }
                 '7' => {
-                    count += 1;
-
                     if prev_col < col {
                         row += 1;
                     } else {
@@ -77,8 +86,6 @@ fn get_max_result(d: &Vec<Vec<char>>, start: (i32, i32), direction: &(i32, i32))
                     }
                 }
                 'F' => {
-                    count += 1;
-
                     if prev_col > col {
                         row += 1;
                     } else {
@@ -96,43 +103,23 @@ fn get_max_result(d: &Vec<Vec<char>>, start: (i32, i32), direction: &(i32, i32))
         }
     }
 
-    return count / 2;
+    return path;
 }
 
-fn find_starting_directions(d: &Vec<Vec<char>>) -> ((i32, i32), (i32, i32)) {
-    let mut start: (i32, i32) = (-1, -1);
+fn is_path(pos: (usize, usize), path: &Vec<(usize, usize)>) -> bool {
+    for i in 0..path.len() {
+        let p = path[i];
 
-    for i in 0..d.len() {
-        let row = &d[i];
-
-        for j in 0..row.len() {
-            if row[j] == 'S' {
-                start = (i as i32, j as i32);
-            }
+        if p.0 == pos.0 && p.1 == pos.1 {
+            return true;
         }
     }
 
-    if start.0 == -1 {
-        panic!("failed to find the starting position");
-    }
+    return false;
+}
 
-    // find a possible start
+fn print_path_row(path: &Vec<(usize, usize)>, row: usize) {
+    let r: Vec<&(usize, usize)> = path.iter().filter(|x| x.0 == row).collect();
 
-    let possible_starts = vec![
-        ((start.0 - 1, start.1), vec!['|', '7', 'F']),
-        ((start.0, start.1 - 1), vec!['-', 'F', 'L']),
-        ((start.0, start.1 + 1), vec!['-', '7', 'J']),
-        ((start.0 + 1, start.1), vec!['|', 'J', 'L']),
-    ];
-
-    for i in 0..possible_starts.len() {
-        let pos = &possible_starts[i].0;
-        let signs = &possible_starts[i].1;
-
-        if pos.0 >= 0 && pos.1 >= 0 && signs.contains(&d[pos.0 as usize][pos.1 as usize]) {
-            return (start, *pos);
-        }
-    }
-
-    panic!("failed to find a starting position");
+    println!("row path: {:?}", r);
 }
